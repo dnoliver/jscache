@@ -63,30 +63,35 @@ Cache.Priority = {
 Cache.BasicCacheStorage = function() {
   this.items_ = {};
   this.count_ = 0;
-}
+};
+
 Cache.BasicCacheStorage.prototype.get = function(key) {
   return this.items_[key];
-}
+};
+
 Cache.BasicCacheStorage.prototype.set = function(key, value) {
   if (typeof this.get(key) === "undefined")
     this.count_++;
   this.items_[key] = value;
-}
+};
+
 Cache.BasicCacheStorage.prototype.size = function(key, value) {
   return this.count_;
-}
+};
+    
 Cache.BasicCacheStorage.prototype.remove = function(key) {
   var item = this.get(key);
   if (typeof item !== "undefined")
     this.count_--;
   delete this.items_[key];
   return item;
-}
+};
+
 Cache.BasicCacheStorage.prototype.keys = function() {
   var ret = [], p;
   for (p in this.items_) ret.push(p);
   return ret;
-}
+};
 
 /**
  * Local Storage based persistant cache storage backend.
@@ -106,31 +111,36 @@ Cache.LocalStorageCacheStorage = function(namespace) {
   this.prefix_ = 'cache-storage.' + (namespace || 'default') + '.';
   // Regexp String Escaping from http://simonwillison.net/2006/Jan/20/escape/#p-6
   var escapedPrefix = this.prefix_.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-  this.regexp_ = new RegExp('^' + escapedPrefix)
+  this.regexp_ = new RegExp('^' + escapedPrefix);
 }
+
 Cache.LocalStorageCacheStorage.prototype.get = function(key) {
   var item = window.localStorage[this.prefix_ + key];
   if (item) return JSON.parse(item);
   return null;
-}
+};
+
 Cache.LocalStorageCacheStorage.prototype.set = function(key, value) {
   window.localStorage[this.prefix_ + key] = JSON.stringify(value);
-}
+};
+
 Cache.LocalStorageCacheStorage.prototype.size = function(key, value) {
   return this.keys().length;
-}
+};
+
 Cache.LocalStorageCacheStorage.prototype.remove = function(key) {
   var item = this.get(key);
   delete window.localStorage[this.prefix_ + key];
   return item;
-}
+};
+
 Cache.LocalStorageCacheStorage.prototype.keys = function() {
   var ret = [], p;
   for (p in window.localStorage) {
     if (p.match(this.regexp_)) ret.push(p.replace(this.prefix_, ''));
   };
   return ret;
-}
+};
 
 /**
  * Retrieves an item from the cache.
@@ -158,32 +168,34 @@ Cache.prototype.getItem = function(key) {
   var returnVal = item ? item.value : null;
   if (returnVal) {
     this.stats_['hits']++;
-    this.log_('Cache HIT for key ' + key)
+    this.log_('Cache HIT for key ' + key);
   } else {
     this.stats_['misses']++;
-    this.log_('Cache MISS for key ' + key)
+    this.log_('Cache MISS for key ' + key);
   }
+
   return returnVal;
 };
-
 
 Cache._CacheItem = function(k, v, o) {
     if (!k) {
       throw new Error("key cannot be null or empty");
     }
+    
     this.key = k;
     this.value = v;
     o = o || {};
+    
     if (o.expirationAbsolute) {
       o.expirationAbsolute = o.expirationAbsolute.getTime();
     }
     if (!o.priority) {
       o.priority = Cache.Priority.NORMAL;
     }
+    
     this.options = o;
     this.lastAccessed = new Date().getTime();
 };
-
 
 /**
  * Sets an item in the cache.
@@ -268,7 +280,7 @@ Cache.prototype.toHtmlString = function() {
 Cache.prototype.resize = function(newMaxSize) {
   this.log_('Resizing Cache from ' + this.maxSize_ + ' to ' + newMaxSize);
   // Set new size before purging so we know how many items to purge
-  var oldMaxSize = this.maxSize_
+  var oldMaxSize = this.maxSize_;
   this.maxSize_ = newMaxSize;
 
   if (newMaxSize > 0 && (oldMaxSize < 0 || newMaxSize < oldMaxSize)) {
@@ -317,6 +329,7 @@ Cache.prototype.purge_ = function() {
       this.removeItem(ritem.key);
     }
   }
+    
   this.log_('Purged cached');
 };
 
@@ -380,7 +393,6 @@ Cache.prototype.removeWhere = function(test) {
 Cache.prototype.size = function() {
   return this.storage_.size();
 }
-
 
 /**
  * @param {Object} item A cache item.
